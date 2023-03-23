@@ -17,10 +17,14 @@ def main():
     args = parser.parse_args()
 
     print('Processing %s ...'%args.image_path)
-    img = cv2.imread(args.image_path, 0).astype(np.float32)
-
+    img = cv2.imread(args.image_path).astype(np.float32)
+    img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+  
     ### TODO ###
+    DoG = Difference_of_Gaussian(args.threshold)
+    keypoints = DoG.get_keypoints(img_gray, save_images = True)
 
+    plot_keypoints(img_gray, keypoints, "out/keypoints.png")
 
 if __name__ == '__main__':
     main()
