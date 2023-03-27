@@ -47,8 +47,9 @@ class Difference_of_Gaussian(object):
                 if not os.path.exists("out"):
                     os.mkdir("out")
                 for i in range(len(img)):
-                    img[i] = ((img[i] - img[i].min()) / (img[i].max()-img[i].min()) *255).round()
-                    cv2.imwrite("out/" + keyword + str(i+1) +".png", img[i])
+                    out = img[i].copy()
+                    out = ((out - out.min()) / (out.max()-out.min()) *255).round()
+                    cv2.imwrite("out/" + keyword + str(i+1) +".png", out)
 
         saveResult(dog_images, "DoG1-")
         saveResult(dog_images_resise, "DoG2-")
@@ -83,14 +84,18 @@ class Difference_of_Gaussian(object):
             array =  []
             for i in range(img.shape[0]):
                 for j in range(img.shape[1]):
-                    if img[i][j] > self.threshold:
+                    if img[i][j] >= self.threshold:
                         array.append((i,j))
                         
             return np.array(array)
-
-        local_extremum = np.concatenate((threshold(extremum_images),threshold(extremum_images_resize)*2),axis=0)
-
-
+        
+        threshold_points = threshold(extremum_images)
+        threshold_points_resize = threshold(extremum_images_resize) * 2
+        if threshold_points_resize != []:
+            local_extremum = np.concatenate((threshold_points,threshold_points_resize),axis=0)
+        else: # Fix error concatenate with []
+            local_extremum = np.concatenate((threshold_points,threshold_points),axis=0)
+            
         # Step 4: Delete duplicate keypoints
         # - Function: np.unique
         keypoints = np.unique(local_extremum,axis=0)

@@ -25,6 +25,7 @@ def main():
     keypoints = DoG.get_keypoints(img_gray, save_images = True)
 
     plot_keypoints(img_gray, keypoints, "out/keypoints.png")
+    print('Done %s ...'%args.image_path)
 
 if __name__ == '__main__':
     main()
