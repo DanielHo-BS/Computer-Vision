@@ -1,7 +1,5 @@
 import numpy as np
 import cv2
-import math
-
 
 class Joint_bilateral_filter(object):
     def __init__(self, sigma_s, sigma_r):
@@ -28,26 +26,48 @@ class Joint_bilateral_filter(object):
         kernel_s = np.exp(-(x ** 2 + y ** 2) * scaleFactor_s)
         
         # Main
-        if padded_img.ndim == 3 and padded_guidance.ndim == 3:
+        if padded_img.ndim == 3 and padded_guidance.ndim == 3:   # RGB-image and RGB-guidance
             for y in range(self.pad_w, self.pad_w + h):
                 for x in range(self.pad_w, self.pad_w + w):
+                    # Range kernel * Spaial kernel
                     wgt = LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 0] - padded_guidance[y, x, 0])] * \
                           LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 1] - padded_guidance[y, x, 1])] * \
                           LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 2] - padded_guidance[y, x, 2])] * \
                           kernel_s
                     wacc = np.sum(wgt)
+                    # Convolution
                     output[y - self.pad_w, x - self.pad_w, 0] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 0]) / wacc
                     output[y - self.pad_w, x - self.pad_w, 1] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 1]) / wacc
                     output[y - self.pad_w, x - self.pad_w, 2] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 2]) / wacc
-        elif padded_img.ndim == 3 and padded_guidance.ndim == 2:
+        elif padded_img.ndim == 3 and padded_guidance.ndim == 2:   # RGB-image and gray-guidance
             for y in range(self.pad_w, self.pad_w + h):
                 for x in range(self.pad_w, self.pad_w + w):
+                    # Range kernel * Spaial kernel
                     wgt = LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1] - padded_guidance[y, x])] * kernel_s
                     wacc = np.sum(wgt)
+                    # Convolution
                     output[y - self.pad_w, x - self.pad_w, 0] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 0]) / wacc
                     output[y - self.pad_w, x - self.pad_w, 1] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 1]) / wacc
                     output[y - self.pad_w, x - self.pad_w, 2] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 2]) / wacc
+        elif padded_img.ndim == 2 and padded_guidance.ndim == 3:   # gray-image and RGB-guidance
+            for y in range(self.pad_w, self.pad_w + h):
+                for x in range(self.pad_w, self.pad_w + w):
+                    # Range kernel * Spaial kernel
+                    wgt = LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 0] - padded_guidance[y, x, 0])] * \
+                          LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 1] - padded_guidance[y, x, 1])] * \
+                          LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1, 2] - padded_guidance[y, x, 2])] * \
+                          kernel_s
+                    wacc = np.sum(wgt)
+                    # Convolution
+                    output[y - self.pad_w, x - self.pad_w] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1]) / wacc
+        elif padded_img.ndim == 2 and padded_guidance.ndim == 2:  # gray-image and gray-guidance
+            for y in range(self.pad_w, self.pad_w + h):
+                for x in range(self.pad_w, self.pad_w + w):
+                    # Range kernel * Spaial kernel
+                    wgt = LUT[abs(padded_guidance[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1] - padded_guidance[y, x])] * kernel_s
+                    wacc = np.sum(wgt)
+                    # Convolution
+                    output[y - self.pad_w, x - self.pad_w] = np.sum(wgt * padded_img[y - self.pad_w:y + self.pad_w + 1, x - self.pad_w:x + self.pad_w + 1]) / wacc 
         else:
             print('Error ndim of image or guidance!!!')
-        #print(output[100,100,:].astype(np.uint8))
         return np.clip(output, 0, 255).astype(np.uint8)
