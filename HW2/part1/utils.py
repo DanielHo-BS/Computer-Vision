@@ -1,9 +1,11 @@
 import numpy as np
+import cv2
 from PIL import Image
 from tqdm import tqdm
 from cyvlfeat.sift.dsift import dsift
 from cyvlfeat.kmeans import kmeans
 from scipy.spatial.distance import cdist
+from scipy.stats import mode
 
 CAT = ['Kitchen', 'Store', 'Bedroom', 'LivingRoom', 'Office',
        'Industrial', 'Suburb', 'InsideCity', 'TallBuilding', 'Street',
@@ -41,8 +43,16 @@ def get_tiny_images(img_paths):
     #       tiny images unit length and zero mean, which will       #
     #       slightly increase the performance                       #
     #################################################################
-
+    
     tiny_img_feats = []
+    with tqdm(total=len(img_paths)) as pbar:
+        for img_path in img_paths:
+            img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.float32)  # Load image and BGR2GRAY
+            tiny_img = cv2.resize(img, (16, 16), interpolation=cv2.INTER_NEAREST).copy()  # Resize image to 16 * 16
+            img_feat = np.array(tiny_img).flatten()  # Flatten 16 *16 to 256
+            img_feat_norm = (img_feat - img_feat.mean(axis=0)) / img_feat.std(axis=0)  # Normalize
+            tiny_img_feats.append(img_feat_norm)
+            pbar.update(1)
 
     #################################################################
     #                        END OF YOUR CODE                       #
@@ -99,12 +109,23 @@ def build_vocabulary(img_paths, vocab_size=400):
     # You are welcome to use your own SIFT feature                                   #
     ##################################################################################
 
+    bag_of_features = []
+
+    with tqdm(total=len(img_paths)) as pbar:
+        for img_path in img_paths:
+            img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.float32)  # Load image and BGR2GRAY
+            _, descriptors = dsift(img, step=[3,3], fast=True)  # Get SIFT features (128-dim)
+            bag_of_features.append(descriptors)
+            pbar.update(1)
+        bag_of_features = np.concatenate(bag_of_features, axis=0).astype('float32')
+        vocab = kmeans(bag_of_features, vocab_size, initialization="PLUSPLUS", verbose=True)
+
     ##################################################################################
     #                                END OF YOUR CODE                                #
     ##################################################################################
     
     # return vocab
-    return None
+    return vocab
 
 ###### Step 1-b-2
 def get_bags_of_sifts(img_paths, vocab):
@@ -143,6 +164,19 @@ def get_bags_of_sifts(img_paths, vocab):
     ############################################################################
 
     img_feats = []
+
+    with tqdm(total=len(img_paths)) as pbar:
+        for img_path in img_paths:
+            img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.float32)  # Load image and BGR2GRAY
+            _, descriptors = dsift(img, step=[4,4], fast=True)  # Get SIFT features (128-dim)
+            dist  = cdist(vocab, descriptors, metric='cityblock')  # Calculate the distances
+            idx = np.argmin(dist, axis=0)  # Nearest cluster center for each local feature
+            hist, _ = np.histogram(idx, bins=len(vocab))  # Build a histogram
+            hist_norm = [float(i)/sum(hist) for i in hist]  # Normalize
+            img_feats.append(hist_norm)
+            pbar.update(1)
+
+    img_feats = np.asarray(img_feats)  # Turn feature into 2-D numpy array
 
     ############################################################################
     #                                END OF YOUR CODE                          #
@@ -202,6 +236,11 @@ def nearest_neighbor_classify(train_img_feats, train_labels, test_img_feats):
     ###########################################################################
 
     test_predicts = []
+    K = 10
+
+    dists = cdist(test_img_feats, train_img_feats, metric='cityblock')  # Calculate the distance
+    k_nearest_labels = np.array(train_labels)[np.argsort(dists)[:,:K]]  # Find K nearest
+    test_predicts = mode(k_nearest_labels,axis=1).mode.ravel()  # Get the label
 
     ###########################################################################
     #                               END OF YOUR CODE                          #
