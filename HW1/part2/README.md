@@ -85,7 +85,7 @@ Min Cost: 1 Max Cost: 3
 
 ### RGB Image
 
-![image](./testdata/1.png)
+![image](./out/test1/1.png)
 
 ### Gray Images
 
