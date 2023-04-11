@@ -33,8 +33,17 @@ def plot_learning_curve(logfile_dir, result_lists):
     # plot being unsaved if early stop, so the result_lists's size #
     # is not fixed.                                                #
     ################################################################
-    
-    pass
+    for key, value in result_lists.items():
+        plt.figure()
+        epochs = range(1,len(value)+1)
+        plt.plot(epochs,value)
+        plt.title(key)
+        plt.xlabel('epochs')
+        plt.savefig(os.path.join(logfile_dir, key + '.png'))
+        #plt.show()
+        plt.close()
+
+
 
 def train(model, train_loader, val_loader, logfile_dir, model_save_dir, criterion, optimizer, scheduler, device):
 
@@ -62,7 +71,7 @@ def train(model, train_loader, val_loader, logfile_dir, model_save_dir, criterio
             loss.backward()
             optimizer.step()
             # Evaluate.
-            train_correct += torch.sum(torch.argmax(pred, dim=1) == labels)
+            train_correct += torch.sum(torch.argmax(pred, dim=1) == labels).item()
             train_loss += loss.item()
         # Print training result
         train_time = time.time() - train_start_time
@@ -88,7 +97,18 @@ def train(model, train_loader, val_loader, logfile_dir, model_save_dir, criterio
             # You don't have to update parameters, just record the      #
             # accuracy and loss.                                        #
             #############################################################
-            
+            for batch, data in enumerate(val_loader):
+                sys.stdout.write(f'\r[{epoch + 1}/{cfg.epochs}] Val batch: {batch + 1} / {len(val_loader)}')
+                sys.stdout.flush()
+                # Data loading.
+                images, labels = data['images'].to(device), data['labels'].to(device) # (batch_size, 3, 32, 32), (batch_size)
+                # Forward pass. input: (batch_size, 3, 32, 32), output: (batch_size, 10)
+                pred = model(images)
+                # Calculate loss.
+                loss = criterion(pred, labels)
+                # Evaluate.
+                val_correct += torch.sum(torch.argmax(pred, dim=1) == labels).item()
+                val_loss += loss.item()
             ######################### TODO End ##########################
 
         # Print validation result

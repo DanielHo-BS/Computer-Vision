@@ -3,7 +3,7 @@ import torch.nn as nn
 import torchvision.models as models
 
 class MyNet(nn.Module): 
-    def __init__(self):
+    def __init__(self, num_out=10):
         super(MyNet, self).__init__()
         
         ################################################################
@@ -12,7 +12,18 @@ class MyNet(nn.Module):
         # input channel is 3, and the output dimension is 10 (class).  #
         ################################################################
 
-        pass
+        self.conv1 = nn.Sequential(nn.Conv2d(3,6,kernel_size=5, stride=1),
+                             nn.ReLU(),
+                             nn.MaxPool2d(kernel_size=2, stride=2),
+                             )
+        self.conv2 = nn.Sequential(nn.Conv2d(6,16,kernel_size=5),
+                             nn.ReLU(),
+                             nn.MaxPool2d(kernel_size=2, stride=2),)
+        
+        self.fc1 = nn.Sequential(nn.Linear(400, 120), nn.ReLU())
+        self.fc2 = nn.Sequential(nn.Linear(120,90), nn.ReLU())
+        self.fc3 = nn.Linear(90,num_out)
+
 
     def forward(self, x):
 
@@ -21,7 +32,18 @@ class MyNet(nn.Module):
         # Define the forward path of your model. #
         ##########################################
 
-        pass
+        x = self.conv1(x)
+        x = self.conv2(x)
+        x = torch.flatten(x, start_dim=1, end_dim=-1)
+        
+        # It is important to check your shape here,
+        # so that you know how manys nodes are there in first FC in_features
+        #print(x.shape)
+        x = self.fc1(x)
+        x = self.fc2(x)
+        x = self.fc3(x)        
+        out = x
+        return out
     
 class ResNet18(nn.Module):
     def __init__(self):
@@ -33,7 +55,8 @@ class ResNet18(nn.Module):
         ############################################
 
         # (batch_size, 3, 32, 32)
-        self.resnet = models.resnet18(pretrained=True)
+        weights = models.ResNet18_Weights.IMAGENET1K_V1
+        self.resnet = models.resnet18(weights=weights)
         # (batch_size, 512)
         self.resnet.fc = nn.Linear(self.resnet.fc.in_features, 10)
         # (batch_size, 10)
