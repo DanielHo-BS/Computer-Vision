@@ -8,7 +8,7 @@ import torch
 import torch.nn as nn
 import matplotlib.pyplot as plt
 
-from model import MyNet, ResNet18
+from model import MyNet, ResNet18, myResnet
 from dataset import get_dataloader
 from utils import set_seed, write_config_log, write_result_log
 
@@ -177,6 +177,8 @@ def main():
         model = MyNet()
     elif cfg.model_type == 'resnet18':
         model = ResNet18()
+    elif cfg.model_type == 'myResnet':
+        model = myResnet()
     else:
         raise NameError('Unknown model type')
 

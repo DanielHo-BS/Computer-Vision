@@ -37,6 +37,9 @@ def main():
     else:
         raise NameError('Unknown model type')
     model.to(device)
+    #print('----Architecture----\n',model,'\n----Architecture----\n')
+    #print('----Parameters----\n',sum([param.nelement() for param in model.parameters()]),'\n----Parameters----\n')
+    
 
     ##### DATALOADER #####
     ##### TODO: check dataset.py #####
@@ -73,6 +76,6 @@ def main():
 
     ##### WRITE RESULT #####
     write_csv(output_path, predictions, test_loader)
-    
+
 if __name__ == '__main__':
     main()

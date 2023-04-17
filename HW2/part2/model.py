@@ -74,6 +74,61 @@ class ResNet18(nn.Module):
     def forward(self, x):
         return self.resnet(x)
 
+class residual_block(nn.Module):
+    def __init__(self, in_channels):
+        super(residual_block, self).__init__()
+        self.conv1 = nn.Sequential(nn.Conv2d(in_channels=in_channels, 
+                                             out_channels=in_channels, 
+                                             kernel_size=3, padding=1), 
+                                   nn.BatchNorm2d(in_channels))
+        self.conv2 = nn.Sequential(nn.Conv2d(in_channels=in_channels, 
+                                             out_channels=in_channels, 
+                                             kernel_size=3, padding=1), 
+                                   nn.BatchNorm2d(in_channels))
+        self.relu = nn.ReLU()
+        
+    def forward(self,x):
+        identity = x
+        out = self.conv1(x)
+        out = self.conv2(out)
+        out += identity
+        out = self.relu(out)
+        return out
+
+class myResnet(nn.Module):
+    def __init__(self, in_channels=3, num_out=10):
+        super(myResnet, self).__init__()
+        self.stem_conv = nn.Conv2d(in_channels=in_channels, out_channels=64, kernel_size=3, padding=1)
+        self.layer1 = residual_block(64)
+        self.cnn_layer2 = nn.Sequential(nn.Conv2d(64, 64, kernel_size=3, stride=1),
+                                        nn.MaxPool2d(kernel_size=2, stride=2),
+                                        nn.BatchNorm2d(64, affine = True),
+                                        nn.ReLU())
+        self.layer3 = residual_block(64)
+        self.cnn_layer4 = nn.Sequential(nn.Conv2d(64, 128, kernel_size=3, stride=1),
+                                        nn.MaxPool2d(kernel_size=2, stride=2),
+                                        nn.BatchNorm2d(128, affine = True),
+                                        nn.ReLU())
+        self.layer5 = residual_block(128)
+        self.fc1 = nn.Sequential(nn.Linear(4608, 512), nn.ReLU())
+        self.fc2 = nn.Linear(512, num_out)
+
+    def forward(self,x):
+        x = self.stem_conv(x)
+        x = self.layer1(x)
+        x = self.cnn_layer2(x)
+        x = self.layer3(x)
+        x = self.cnn_layer4(x)
+        x = self.layer5(x)
+        x = torch.flatten(x, 1)
+        
+        # It is important to check your shape here so that you know how manys nodes are there in first FC in_features
+#         print(x.shape)
+        x = self.fc1(x)
+        x = self.fc2(x)     
+        out = x
+        return out
+
 class Identity(nn.Module):
     def __init__(self):
         super(Identity, self).__init__()

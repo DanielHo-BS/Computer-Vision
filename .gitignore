@@ -6,6 +6,7 @@ PDF/*
 __pycache__
 
 # HW2
+HW2/part1/checkpoint/*
 HW2/part2/checkpoint/*
 HW2/part2/experiment/*
 HW2/part2/output/*
