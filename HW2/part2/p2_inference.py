@@ -37,9 +37,6 @@ def main():
     else:
         raise NameError('Unknown model type')
     model.to(device)
-    #print('----Architecture----\n',model,'\n----Architecture----\n')
-    #print('----Parameters----\n',sum([param.nelement() for param in model.parameters()]),'\n----Parameters----\n')
-    
 
     ##### DATALOADER #####
     ##### TODO: check dataset.py #####

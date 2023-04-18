@@ -69,7 +69,8 @@ class ResNet18(nn.Module):
         #   2. remove the first maxpool layer (i.e. replace with Identity())  #
         # You can run model.py for resnet18's detail structure                #
         #######################################################################
-        
+        self.resnet.conv1 = nn.Sequential(nn.Conv2d(3,64,kernel_size=5, stride=1))
+        self.resnet.maxpool = Identity()
 
     def forward(self, x):
         return self.resnet(x)
@@ -138,4 +139,5 @@ class Identity(nn.Module):
     
 if __name__ == '__main__':
     model = ResNet18()
-    print(model)
+    print('----Architecture----\n',model,'\n----Architecture----\n')
+    print('----Parameters----\n',sum([param.nelement() for param in model.parameters()]),'\n----Parameters----\n')
