@@ -114,7 +114,7 @@ def build_vocabulary(img_paths, vocab_size=400):
     with tqdm(total=len(img_paths)) as pbar:
         for img_path in img_paths:
             img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.float32)  # Load image and BGR2GRAY
-            _, descriptors = dsift(img, step=[3,3], fast=True)  # Get SIFT features (128-dim)
+            _, descriptors = dsift(img, step=[2,2], fast=True)  # Get SIFT features (128-dim)
             bag_of_features.append(descriptors)
             pbar.update(1)
         bag_of_features = np.concatenate(bag_of_features, axis=0).astype('float32')
@@ -168,7 +168,7 @@ def get_bags_of_sifts(img_paths, vocab):
     with tqdm(total=len(img_paths)) as pbar:
         for img_path in img_paths:
             img = cv2.cvtColor(cv2.imread(img_path), cv2.COLOR_BGR2GRAY).astype(np.float32)  # Load image and BGR2GRAY
-            _, descriptors = dsift(img, step=[4,4], fast=True)  # Get SIFT features (128-dim)
+            _, descriptors = dsift(img, step=[3,3], fast=True)  # Get SIFT features (128-dim)
             dist  = cdist(vocab, descriptors, metric='cityblock')  # Calculate the distances
             idx = np.argmin(dist, axis=0)  # Nearest cluster center for each local feature
             hist, _ = np.histogram(idx, bins=len(vocab))  # Build a histogram
