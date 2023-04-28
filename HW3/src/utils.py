@@ -74,19 +74,19 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
                         [np.ones((xmax-xmin) * (ymax-ymin))]), axis=0)
 
     if direction == 'b':
-        # TODO: 3-1.apply H_inv to the destination pixels and retrieve (u,v) pixels
+        # TODO: 3-1. apply H_inv to the destination pixels and retrieve (u,v) pixels
         H_inv = np.linalg.inv(H)
         V = np.dot(H_inv, U)
         Vx, Vy , _ = V/V[2]
-        # TODO: 3-2.then reshape to (ymax-ymin),(xmax-xmin)
+        # TODO: 3-2. then reshape to (ymax-ymin),(xmax-xmin)
         Vx = Vx.reshape(ymax-ymin, xmax-xmin)
         Vy = Vy.reshape(ymax-ymin, xmax-xmin)
-        # TODO: 4.calculate the mask of the transformed coordinate (should not exceed the boundaries of source image)
+        # TODO: 4. calculate the mask of the transformed coordinate (should not exceed the boundaries of source image)
         mask = (((Vx<w_src-1) & (0<=Vx)) & ((Vy<h_src-1) & (0<=Vy)))
-        # TODO: 5-1.sample the source image with the masked
+        # TODO: 5-1. sample the source image with the masked
         mVx = Vx[mask]
         mVy = Vy[mask]
-        # TODO: 5-2.interpolation and reshaped transformed coordinates
+        # TODO: 5-2. interpolation and reshaped transformed coordinates
         mVxi = mVx.astype(int)
         mVyi = mVy.astype(int)
         dX = (mVx - mVxi).reshape((-1,1))
@@ -100,15 +100,15 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
         dst[ymin:ymax,xmin:xmax][mask] = p[mVyi,mVxi]
 
     elif direction == 'f':
-        # TODO: 3-1.apply H to the source pixels and retrieve (u,v) pixels
+        # TODO: 3-1. apply H to the source pixels and retrieve (u,v) pixels
         V = np.dot(H,U)
         V = (V/V[2]).astype(int)
-        # TODO: 3-2.then reshape to (ymax-ymin),(xmax-xmin)
+        # TODO: 3-2. then reshape to (ymax-ymin),(xmax-xmin)
         Vx = V[0].reshape(ymax-ymin, xmax-xmin)
         Vy = V[1].reshape(ymax-ymin, xmax-xmin)
-        # TODO: 4.calculate the mask of the transformed coordinate (should not exceed the boundaries of destination image)
+        # TODO: 4. calculate the mask of the transformed coordinate (should not exceed the boundaries of destination image)
         mask = ((Vx<w_dst)&(0<=Vx))&((Vy<h_dst)&(0<=Vy))
-        # TODO: 5.filter the valid coordinates using previous obtained mask
+        # TODO: 5. filter the valid coordinates using previous obtained mask
         mVx = Vx[mask]
         mVy = Vy[mask]
         # TODO: 6. assign to destination image using advanced array indicing
