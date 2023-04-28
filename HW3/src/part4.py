@@ -60,7 +60,7 @@ def panorama(imgs):
             H = solve_homography(p1, p2)
             # use H to get predicted coordinates
             U = np.concatenate((src_pts.T, np.ones((1,src_pts.shape[0]))), axis=0)
-            pred = np.dot(H, U)
+            pred = H @ U  #np.dot(H, U)
             pred = (pred/pred[2]).T[:,:2]
             # estimate the error between predicted coordinates and matched points
             distance = pred-dst_pts
@@ -74,7 +74,7 @@ def panorama(imgs):
                 maxInliers = inliers
         
         # TODO: 3. chain the homographies
-        last_best_H = np.dot(last_best_H, best_H)
+        last_best_H = last_best_H @ best_H  # np.dot(last_best_H, best_H)
         
         # TODO: 4. apply warping
         dst = warping(im1, dst, last_best_H, 0, h_max, 0, w_max, direction='b')

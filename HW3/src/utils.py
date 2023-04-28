@@ -14,9 +14,10 @@ def solve_homography(u, v):
 
     if v.shape[0] is not N:
         print('u and v should have the same size')
-        return None
+        return H
     if N < 4:
         print('At least 4 points should be given')
+        return H
 
     # TODO: 1.forming A
     A = np.zeros((2*N,9))
@@ -24,7 +25,7 @@ def solve_homography(u, v):
         A[i*2,:] = [u[i][0], u[i][1], 1, 0, 0, 0, -u[i][0]*v[i][0], -u[i][1]*v[i][0], -v[i][0]]
         A[i*2+1,:] = [0, 0, 0, u[i][0], u[i][1], 1, -u[i][0]*v[i][1], -u[i][1]*v[i][1], -v[i][1]]
     # TODO: 2.solve H with A
-    [U, S, V] = np.linalg.svd(A)
+    [_, _, V] = np.linalg.svd(A)
     h = V.T[:,-1]
     H = np.reshape(h,(3,3))
     return H
@@ -76,11 +77,11 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
     if direction == 'b':
         # TODO: 3-1. apply H_inv to the destination pixels and retrieve (u,v) pixels
         H_inv = np.linalg.inv(H)
-        V = np.dot(H_inv, U)
-        Vx, Vy , _ = V/V[2]
+        V = H_inv @ U # np.dot(H_inv, U)
+        V = V/V[-1]
         # TODO: 3-2. then reshape to (ymax-ymin),(xmax-xmin)
-        Vx = Vx.reshape(ymax-ymin, xmax-xmin)
-        Vy = Vy.reshape(ymax-ymin, xmax-xmin)
+        Vx = V[0].reshape(ymax-ymin, xmax-xmin)
+        Vy = V[1].reshape(ymax-ymin, xmax-xmin)
         # TODO: 4. calculate the mask of the transformed coordinate (should not exceed the boundaries of source image)
         mask = (((Vx<w_src-1) & (0<=Vx)) & ((Vy<h_src-1) & (0<=Vy)))
         # TODO: 5-1. sample the source image with the masked
@@ -89,20 +90,14 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
         # TODO: 5-2. interpolation and reshaped transformed coordinates
         mVxi = mVx.astype(int)
         mVyi = mVy.astype(int)
-        dX = (mVx - mVxi).reshape((-1,1))
-        dY = (mVy - mVyi).reshape((-1,1))
-        p = np.zeros((h_src, w_src, ch))
-        p[mVyi, mVxi, :] += (1-dY)*(1-dX)*src[mVyi, mVxi, :]
-        p[mVyi, mVxi, :] += (dY)*(1-dX)*src[mVyi+1, mVxi, :]
-        p[mVyi, mVxi, :] += (1-dY)*(dX)*src[mVyi, mVxi+1, :]
-        p[mVyi, mVxi, :] += (dY)*(dX)*src[mVyi+1, mVxi+1, :]
+        p = interpolation(src, mVx, mVy,mVxi, mVyi)
         # TODO: 6. assign to destination image with proper masking
         dst[ymin:ymax,xmin:xmax][mask] = p[mVyi,mVxi]
 
     elif direction == 'f':
         # TODO: 3-1. apply H to the source pixels and retrieve (u,v) pixels
-        V = np.dot(H,U)
-        V = (V/V[2]).astype(int)
+        V = H @ U  # np.dot(H,U)
+        V = (V/V[-1]).astype(int)
         # TODO: 3-2. then reshape to (ymax-ymin),(xmax-xmin)
         Vx = V[0].reshape(ymax-ymin, xmax-xmin)
         Vy = V[1].reshape(ymax-ymin, xmax-xmin)
@@ -115,3 +110,14 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
         dst[mVy, mVx, :] = src[mask]
 
     return dst
+
+def interpolation(src, mVx, mVy,mVxi, mVyi):
+    dX = (mVx - mVxi).reshape((-1,1))
+    dY = (mVy - mVyi).reshape((-1,1))
+    p = np.zeros((src.shape))
+    p[mVyi, mVxi, :] += (1-dY)*(1-dX)*src[mVyi, mVxi, :]
+    p[mVyi, mVxi, :] += (dY)*(1-dX)*src[mVyi+1, mVxi, :]
+    p[mVyi, mVxi, :] += (1-dY)*(dX)*src[mVyi, mVxi+1, :]
+    p[mVyi, mVxi, :] += (dY)*(dX)*src[mVyi+1, mVxi+1, :]
+    
+    return p
