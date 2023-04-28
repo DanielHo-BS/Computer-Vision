@@ -77,7 +77,7 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
         # TODO: 3-1.apply H_inv to the destination pixels and retrieve (u,v) pixels
         H_inv = np.linalg.inv(H)
         V = np.dot(H_inv, U)
-        Vx, Vy = V/V[2]
+        Vx, Vy , _ = V/V[2]
         # TODO: 3-2.then reshape to (ymax-ymin),(xmax-xmin)
         Vx = Vx.reshape(ymax-ymin, xmax-xmin)
         Vy = Vy.reshape(ymax-ymin, xmax-xmin)
@@ -89,9 +89,9 @@ def warping(src, dst, H, ymin, ymax, xmin, xmax, direction='b'):
         # TODO: 5-2.interpolation and reshaped transformed coordinates
         mVxi = mVx.astype(int)
         mVyi = mVy.astype(int)
-        dX = (mVx- mVxi).reshape((-1,-1))
-        dY = (mVy- mVyi).reshape((-1,-1))
-        p = np.zeros(h_src, w_src, ch)
+        dX = (mVx - mVxi).reshape((-1,1))
+        dY = (mVy - mVyi).reshape((-1,1))
+        p = np.zeros((h_src, w_src, ch))
         p[mVyi, mVxi, :] += (1-dY)*(1-dX)*src[mVyi, mVxi, :]
         p[mVyi, mVxi, :] += (dY)*(1-dX)*src[mVyi+1, mVxi, :]
         p[mVyi, mVxi, :] += (1-dY)*(dX)*src[mVyi, mVxi+1, :]
