@@ -3,7 +3,7 @@ import cv2
 from utils import solve_homography, warping
 
 
-def transform(img, canvas, corners):
+def transform(img, canvas, corners, direction):
     """
     given a source image, a target canvas and the indicated corners, warp the source image to the target canvas
     :param img: input source image
@@ -18,9 +18,18 @@ def transform(img, canvas, corners):
                   [0, h]
                   ])
     H = solve_homography(x, corners)
+    if direction=='f':
+        return  warping(img, canvas, H, 0, h, 0, w, direction=direction)
     
-    return  warping(img, canvas, H, 0, h, 0, w, direction='f')
+    elif direction=='b':
+        xmin, ymin = np.min(corners, axis=0)
+        xmax, ymax = np.max(corners, axis=0)
+        return  warping(img, canvas, H, ymin, ymax, xmin, xmax, direction=direction)
 
+    else:
+        print("Wrong Direction!!")
+        return None
+        
 
 if __name__ == "__main__":
 
@@ -41,10 +50,20 @@ if __name__ == "__main__":
     canvas_corners5 = np.array([[725, 62], [893, 62], [893, 191], [724, 192]])
 
     # TODO: 2. implement the transform function
-    output1 = transform(img1, canvas, canvas_corners1)
-    output1 = transform(img2, output1, canvas_corners2)
-    output1 = transform(img3, output1, canvas_corners3)
-    output1 = transform(img4, output1, canvas_corners4)
-    output1 = transform(img5, output1, canvas_corners5)
+    direction = 'f' # forword
+    output1 = transform(img1, canvas, canvas_corners1, direction)
+    output1 = transform(img2, output1, canvas_corners2, direction)
+    output1 = transform(img3, output1, canvas_corners3, direction)
+    output1 = transform(img4, output1, canvas_corners4, direction)
+    output1 = transform(img5, output1, canvas_corners5, direction)
 
-    cv2.imwrite('output1.png', output1)
+    cv2.imwrite('output1_1.png', output1)
+
+    direction = 'b' # backward
+    output2 = transform(img1, canvas, canvas_corners1, direction)
+    output2 = transform(img2, output2, canvas_corners2, direction)
+    output2 = transform(img3, output2, canvas_corners3, direction)
+    output2 = transform(img4, output2, canvas_corners4, direction)
+    output2 = transform(img5, output2, canvas_corners5, direction)
+
+    cv2.imwrite('output1_2.png', output2)
