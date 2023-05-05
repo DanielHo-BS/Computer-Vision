@@ -21,6 +21,7 @@ if __name__ == '__main__':
 
     output3_1 = warping(secret1, dst, H1, 0, h, 0, w, direction='b')
     output3_2 = warping(secret2, dst, H2, 0, h, 0, w, direction='b')
-
+    print(np.array_equal(output3_1, output3_2))
+    
     cv2.imwrite('output3_1.png', output3_1)
     cv2.imwrite('output3_2.png', output3_2)

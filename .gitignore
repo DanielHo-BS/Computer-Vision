@@ -4,6 +4,8 @@ PDF/*
 *data/
 *.pkl
 __pycache__
+M11107309/
+*.zip
 
 # HW2
 HW2/part1/checkpoint/*

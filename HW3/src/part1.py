@@ -57,8 +57,8 @@ if __name__ == "__main__":
     output1 = transform(img4, output1, canvas_corners4, direction)
     output1 = transform(img5, output1, canvas_corners5, direction)
 
-    cv2.imwrite('output1_1.png', output1)
-
+    cv2.imwrite('output1.png', output1)
+    '''
     direction = 'b' # backward
     output2 = transform(img1, canvas, canvas_corners1, direction)
     output2 = transform(img2, output2, canvas_corners2, direction)
@@ -67,3 +67,4 @@ if __name__ == "__main__":
     output2 = transform(img5, output2, canvas_corners5, direction)
 
     cv2.imwrite('output1_2.png', output2)
+    '''
