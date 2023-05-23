@@ -60,6 +60,7 @@ def computeDisp(Il, Ir, max_disp):
     # TODO: Determine disparity based on estimated cost.
     # [Tips] Winner-take-all
 
+    # enhance the disparity map
     l_disp_map = np.argmin(l_cost_volume, axis=0)
     r_disp_map = np.argmin(r_cost_volume, axis=0)
     
