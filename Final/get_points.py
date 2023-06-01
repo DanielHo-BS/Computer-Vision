@@ -132,7 +132,7 @@ def get_point(img, crops, file):
     return special_points
 
 
-def main(dataset_path, ts):
+def ImgPts(dataset_path, ts):
     csv_path = dataset_path + "/detect_road_marker.csv"
     img_path = dataset_path + "/raw_image.jpg"
     img = cv2.imread(img_path)
@@ -152,5 +152,5 @@ if __name__ == "__main__":
         print("Error: open txt")
     ts = lines[1113].strip("\n")
     dataset_path = f"{sequence}/dataset/{ts}"
-    sp = main(dataset_path, ts)
+    sp = ImgPts(dataset_path, ts)
     print(sp[0], '\n', sp[1])

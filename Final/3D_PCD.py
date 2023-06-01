@@ -1,7 +1,7 @@
 import numpy as np
 import open3d as o3d
 from get_Matrix import get_ExtrinsicMatrix, get_IntrinsicMatrix
-from get_points import main
+from get_points import ImgPts
 from tqdm import tqdm
 
 
@@ -17,7 +17,7 @@ def get_3D_PCD(sequence, lines):
         cam_direction = np.loadtxt(f'{dataset_path}/camera.csv', dtype=str, delimiter=',')
         cam_direction = str(cam_direction).split('/')[2].split('_')[2]
 
-        img_2Dpts = main(dataset_path, ts)
+        img_2Dpts = ImgPts(dataset_path, ts)
         if img_2Dpts == [[],[]]:
             print("Skip the ts:",ts)  
             continue  # skip the img without points
