@@ -60,7 +60,7 @@ def get_bboxes(csv_path, nms_threshold=0.2):
 
 def crop(img, bboxes):
     # init
-    img_crops, means, lower = [], [], []
+    img_crops, means, lower = [[],[]], [], []
     upper = np.array([255, 255, 255])
 
     for bbox in bboxes:
@@ -69,9 +69,11 @@ def crop(img, bboxes):
         signs = img[
             int(bbox[1]) - 1 : int(bbox[3]) + 1, (int(bbox[0])) - 1 : int(bbox[2]) + 1
         ]
+
         std = int(np.std(signs.flatten()))
         mean = int(signs.flatten().mean()) + std
-        img_crops.append(signs)
+        img_crops[0].append(signs)
+        img_crops[1].append(bbox)
         means.append(mean)
         if mean < 250:
             lower.append(np.array([mean, mean, mean]))
@@ -81,7 +83,7 @@ def crop(img, bboxes):
     return {"img_crops": img_crops, "means": means, "lower": lower, "upper": upper}
 
 
-def get_point(img, crops, file):
+def get_point(img, crops, file,car_mask):
     # init
     img_crops = crops["img_crops"]
     means = crops["means"]
@@ -99,15 +101,26 @@ def get_point(img, crops, file):
     if not os.path.exists(save_dir):
         os.makedirs(save_dir)
 
-    for id, img_crop in enumerate(img_crops):
+    ###########update##################
+    # print("Camera angle:",car_mask)
+    car_mask = cv2.imread(car_mask)
+    car_mask = cv2.cvtColor(car_mask,cv2.COLOR_BGR2GRAY)
+    car_mask = 255 -car_mask
+    ####################################    
+    
+    
+    cv2.imwrite("test_carmask.png",car_mask)
+    
+    for id, img_crop in enumerate(img_crops[0]):
         mask = cv2.inRange(img_crop, lower[id], upper)
         img_mask = cv2.bitwise_and(img_crop, img_crop, mask=mask)
         gray = cv2.cvtColor(img_mask, cv2.COLOR_BGR2GRAY)
+
         # find the contours with binary image
         _, img_bn = cv2.threshold(
             gray, means[id], 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU
         )
-        _, contours, _ = cv2.findContours(
+        contours,_= cv2.findContours(
             img_bn, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE
         )
         # find the canny of each crop, for noise filtering
@@ -116,41 +129,73 @@ def get_point(img, crops, file):
 
         for contour in contours:
             # find corner points of each contour
-            corners = cv2.approxPolyDP(contour, 3, True)
+            corners = cv2.approxPolyDP(contour, 1, True)
             for corner in corners:
-                if canny[corner[0][1]][corner[0][0]] != 0:
-                    cv2.circle(
-                        img_crop, (corner[0][0], corner[0][1]), 1, [0, 0, 255], 3
-                    )
-                    special_points[0].append(corner[0][0])
-                    special_points[1].append(corner[0][1])
-                else:
-                    continue  # skip, when corner not in the canny
+                #print(car_mask[corner[0][1]][corner[0][0]])
+                try:
+                    if canny[corner[0][1]][corner[0][0]] !=0 and car_mask[corner[0][1]+int(img_crops[1][id][1])][corner[0][0]+int(img_crops[1][id][0])] !=0 :
+                        
+                        cv2.circle(
+                            img_crop, (corner[0][0], corner[0][1]), 1, [0, 0, 255], 3
+                        )
+                        #print(img_crops[1][id])
+                        special_points[0].append(corner[0][0]+int(img_crops[1][id][0]))
+                        special_points[1].append(corner[0][1]+int(img_crops[1][id][1]))
+                    
+                    else:
+                        continue  # skip, when corner not in the canny
+                except IndexError:
+                    pass
 
         cv2.imwrite(save_dir + "/canny" + str(id) + ".png", canny)  # save the canny of each crop
     cv2.imwrite(save_dir + "/points.png", img)  # save the road marker
     return special_points
 
 
-def ImgPts(dataset_path, ts):
+def ImgPts(dataset_path, ts,car_mask):
     csv_path = dataset_path + "/detect_road_marker.csv"
     img_path = dataset_path + "/raw_image.jpg"
     img = cv2.imread(img_path)
     bboxes = get_bboxes(csv_path)
     crops = crop(img, bboxes)
-    sp = get_point(img, crops, ts)
+    sp = get_point(img, crops, ts,car_mask)
     return sp
 
 
 if __name__ == "__main__":
-    sequence = "./ITRI_dataset/seq1"
+    sequence = "./seq1"
     ts_path = sequence + "/all_timestamp.txt"
     try:
         with open(ts_path, "r") as f:
             lines = f.readlines()
+            
     except IOError:
         print("Error: open txt")
-    ts = lines[1113].strip("\n")
-    dataset_path = f"{sequence}/dataset/{ts}"
-    sp = ImgPts(dataset_path, ts)
-    print(sp[0], '\n', sp[1])
+    
+    for line in lines:
+        ts = line.strip("\n")
+
+        ## update
+        ############ read which camera is used ######################
+        with open (os.path.join(sequence+"/"+"dataset/"+ line.strip("\n")+"/camera.csv"),'r') as can :
+            can_line = can.readlines()
+        can_angle=  can_line[0][-5]
+
+        if can_angle == "f" :
+            img_mask = "gige_100_f_hdr_mask.png"
+        elif can_angle == "b" :
+            img_mask = "gige_100_b_hdr_mask.png"
+        elif can_angle == "l" :
+            img_mask = "gige_100_fl_hdr_mask.png"
+        elif can_angle == "r" :
+            img_mask = "gige_100_fr_hdr_mask.png"
+
+        car_mask = os.path.join("./camera_info/lucid_cameras_x00",img_mask)
+        ##############################################################
+
+        dataset_path = f"{sequence}/dataset/{ts}"
+        sp = ImgPts(dataset_path, ts,car_mask)
+        print(sp[0],"\n",sp[1])
+        print(len(sp[0]))
+
+    
