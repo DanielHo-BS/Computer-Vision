@@ -21,9 +21,9 @@
 
 <img src=./resource/Matrix_Homography_3.png width="400" >
 
-    * $𝐴ℎ = 0$
-    * $SVD of A = U \sum V^T$
-    * Let ℎ be the last column of 𝑉.
+  * $𝐴ℎ = 0$
+  * $SVD of A = U \sum V^T$
+  * Let ℎ be the last column of 𝑉.
 
 ### Forward Warping
 
@@ -39,13 +39,19 @@ image as if it were there.
 
 ### Backward Warping
 
-<img src=./resource/times.jpg width="400" > <img src=./src/output1_2.png width="400" >
+    <img src=./resource/times.jpg width="400" > <img src=./src/output1_2.png width="400" >
 
 ## [Part 3: Unwarp the Secret](./src/part3.py)
 
 * Unwarp the QR code with backward warping.
 
 <img src=./resource/BL_secret1.png width="400" > <img src=./resource/BL_secret2.png width="400" >
+
+### Distortion Correction
+
+W vs. W/O
+
+<img src=./src/output3_1.png width="400" > <img src=./src/output3_2.png width="400" >
 
 ## [Part 4: Panorama](./src/part4.py)
 
@@ -59,7 +65,7 @@ image as if it were there.
   * Use opencv brute force matcher for feature matching.
     * cv.BFMatcher( ), match( )
 
-<img src=./src/output4.png width="800" >
+    <img src=./src/output4.png width="800" >
 
 ## Runs
 

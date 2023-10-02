@@ -19,8 +19,8 @@ if __name__ == '__main__':
     H1 = solve_homography(corners1, v)
     H2 = solve_homography(corners2, v)
 
-    output3_1 = warping(secret1, dst, H1, 0, h, 0, w, direction='b')
-    output3_2 = warping(secret2, dst, H2, 0, h, 0, w, direction='b')
+    output3_1 = warping(secret1, dst.copy(), H1, 0, h, 0, w, direction='b')
+    output3_2 = warping(secret2, dst.copy(), H2, 0, h, 0, w, direction='b')
     print(np.array_equal(output3_1, output3_2))
     
     cv2.imwrite('output3_1.png', output3_1)
