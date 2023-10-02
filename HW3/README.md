@@ -11,15 +11,15 @@
 
 1. Matrix form
 
-    <img src=./resource/Matrix_Homography.png width="400">
+<img src=./resource/Matrix_Homography.png width="400">
 
 2. Multiply by denominator
 
-    <img src=./resource/Matrix_Homography_2.png width="400" >
+<img src=./resource/Matrix_Homography_2.png width="400" >
 
 3. Linear system
 
-    <img src=./resource/Matrix_Homography_3.png width="400" >
+<img src=./resource/Matrix_Homography_3.png width="400" >
 
     * $𝐴ℎ = 0$
     * $SVD of A = U \sum V^T$
