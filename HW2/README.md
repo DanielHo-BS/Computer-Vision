@@ -1,4 +1,4 @@
-# HW2
+# HW2 - Classify
 
 ## [Part 1 - Bag-of-Words Scene Recognition](./part1/)
 

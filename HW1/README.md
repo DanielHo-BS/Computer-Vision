@@ -1,4 +1,4 @@
-# HW1
+# HW1 - Imaging
 
 ## [Part 1 - Difference of Gaussians](./part1)
 
